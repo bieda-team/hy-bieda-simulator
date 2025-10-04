@@ -1,71 +1,82 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-import random
-from calculator.calculator import InflationCalculator
+from typing import Optional, Dict, Any
 from datetime import datetime
+import random
 
 router = APIRouter()
 
-inflation_calc = InflationCalculator()
-
-class PredictionRequest(BaseModel):
-    last_zus_year: int = 2024
-    gender: str  # "Kobieta" / "Mężczyzna"
-    birth_month: int
-    birth_year: int
-    total_contributions: float  # Kwota zwaloryzowanych składek
-    capital: float              # Kwota zwaloryzowanego kapitału początkowego
-    subaccount: float           # Zwaloryzowana kwota ogółem na subkoncie
-    yearly_contributions: float # Kwota składek za 12 miesięcy kalendarzowych
-    retirement_age_years: int
-    retirement_age_months: int
-    start_work_year: int
+class PredictInput(BaseModel):
+    user_id: str
     current_income: float
-    ofe_member: bool = True
-    future_income_percent: float = 100.0  # Przeciętne wynagrodzenie % w przyszłości
+    savings: float
+    retirement_age_years: Optional[int] = None
+    retirement_age_months: Optional[int] = 0
+    gender: str
+    birth_year: int
+    birth_month: int
+    total_contributions: Optional[float] = None
+    capital: Optional[float] = None
+    subaccount: Optional[float] = None
+    yearly_contributions: Optional[float] = None
 
-
-@router.post("/predict")
-def predict_retirement(data: PredictionRequest):
-    """Simulate advanced ZUS-style pension forecast."""
-
+def pension_projection(merged: Dict[str, Any], retirement_age_years: int):
     current_year = datetime.now().year
-    years_worked = current_year - data.start_work_year
-    retirement_year = data.birth_year + data.retirement_age_years
-    years_until_retirement = max(retirement_year - current_year, 0)
-    
-    infaltion_in_the_future = inflation_calc.predict_infaltion(years_until_retirement)
+    years_until_retirement = max((merged["birth_year"] + retirement_age_years) - current_year, 0)
 
-    # --- Capital growth simulation ---
     valorization_rate = 0.045
-    projected_capital = (data.total_contributions + data.capital + data.subaccount)
+    projected_capital = sum([
+        merged.get("total_contributions", 0),
+        merged.get("capital", 0),
+        merged.get("subaccount", 0)
+    ])
     for _ in range(years_until_retirement):
         projected_capital *= (1 + valorization_rate)
+        projected_capital += merged.get("yearly_contributions", 0) * (1 + valorization_rate)
 
-    # Add yearly contributions growth
-    for _ in range(years_until_retirement):
-        projected_capital += data.yearly_contributions * (1 + valorization_rate)
+    gender = merged.get("gender", "Kobieta")
+    gender_life_expectancy = 82 if gender.lower().startswith("k") else 77
+    years_in_retirement = max(gender_life_expectancy - retirement_age_years, 15)
 
-    # --- Pension estimation ---
-    gender_life_expectancy = 82 if data.gender.lower().startswith("k") else 77
-    years_in_retirement = max(gender_life_expectancy - data.retirement_age_years, 15)
+    estimated_monthly_pension = projected_capital / (years_in_retirement * 12) if years_in_retirement else 0
+    replacement_rate = (estimated_monthly_pension / merged.get("current_income", 1)) * 100
 
-    estimated_monthly_pension = projected_capital / (years_in_retirement * 12)
-
-    # --- Replacement rate ---
-    replacement_rate = (estimated_monthly_pension / data.current_income) * 100 if data.current_income else 0
-
-    # Random realism factor
     estimated_monthly_pension *= random.uniform(0.97, 1.03)
     replacement_rate *= random.uniform(0.97, 1.03)
 
     return {
-        "retirement_year": retirement_year,
         "years_until_retirement": years_until_retirement,
         "projected_capital": round(projected_capital, 2),
         "estimated_monthly_pension": round(estimated_monthly_pension, 2),
-        "replacement_rate_percent": round(replacement_rate, 2),
-        "confidence": round(random.uniform(0.85, 0.96), 2),
-        "gender": data.gender,
-        "years_worked": years_worked
+        "replacement_rate_percent": round(replacement_rate, 2)
+    }
+
+@router.post("/predict")
+async def predict(inp: PredictInput):
+    merged = inp.dict()
+    retirement_age = inp.retirement_age_years or 65
+    for key in ["total_contributions", "capital", "subaccount", "yearly_contributions"]:
+        if merged.get(key) is None:
+            if key == "yearly_contributions":
+                merged[key] = inp.current_income * 12 * 0.2
+            else:
+                merged[key] = getattr(inp, key, 0)
+    projection = pension_projection(merged, retirement_age)
+
+    # Simple local heuristic analysis
+    rr = projection["replacement_rate_percent"]
+    if rr >= 75:
+        advice = "Twoja przewidywana stopa zastąpienia jest wysoka — emerytura powinna pokryć większość aktualnego dochodu."
+    elif rr >= 50:
+        advice = "Stopa zastąpienia jest umiarkowana — rozważ dodatkowe oszczędzanie lub inwestowanie."
+    else:
+        advice = "Niska stopa zastąpienia — zdecydowanie warto zwiększyć oszczędności lub rozważyć dodatkowe formy zabezpieczenia."
+
+    return {
+        "user_id": inp.user_id,
+        "gender": inp.gender,
+        "birth_year": inp.birth_year,
+        "retirement_age_years": retirement_age,
+        **projection,
+        "llm_analysis": advice
     }
