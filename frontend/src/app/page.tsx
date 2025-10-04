@@ -12,12 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion'
-import {
   LineChart,
   Line,
   CartesianGrid,
@@ -31,6 +25,7 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false)
   const [prediction, setPrediction] = useState<any>(null)
   const [selectedProfileId, setSelectedProfileId] = useState<string>('user_001')
+  const [showZusData, setShowZusData] = useState(false) // toggleable mock ZUS
 
   // 👤 Mock ZUS profiles (source of truth)
   const mockProfiles = [
@@ -160,20 +155,42 @@ export default function LandingPage() {
         </CardContent>
       </Card>
 
-      {/* Mock Profile Accordion */}
-      <Accordion type="single" collapsible className="max-w-5xl w-full mb-6">
-        <AccordionItem value="mockProfile">
-          <AccordionTrigger>🔍 Pokaż dane profilowe (mock ZUS)</AccordionTrigger>
-          <AccordionContent>
-            <pre className="text-xs bg-gray-100 rounded-lg p-4 overflow-auto">
-              {JSON.stringify(selectedProfile, null, 2)}
-            </pre>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      {/* Toggleable Mock ZUS Data */}
+      <div className="mt-4 w-full max-w-4xl">
+        <Button
+          variant="outline"
+          onClick={() => setShowZusData((prev) => !prev)}
+        >
+          {showZusData ? 'Ukryj mock ZUS data' : 'Pokaż mock ZUS data'}
+        </Button>
+
+        {showZusData && (
+          <Card className="mt-2">
+            <CardHeader>
+              <CardTitle>🔹 Mock ZUS data (do prezentacji jury)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-xs bg-gray-100 p-3 rounded-lg overflow-auto">
+                {JSON.stringify({
+                  gender: selectedProfile.sex === 'Male' ? 'Mężczyzna' : 'Kobieta',
+                  birth_year: selectedProfile.birth_year,
+                  birth_month: selectedProfile.birth_month,
+                  total_contributions: formData.savings * 0.6,
+                  capital: formData.savings * 0.3,
+                  subaccount: formData.savings * 0.1,
+                  yearly_contributions: formData.current_income * 12 * 0.2,
+                }, null, 2)}
+              </pre>
+              <p className="mt-2 text-sm text-gray-500">
+                Dane powyżej są w pełni <strong>mockowane</strong>. W rzeczywistości system ZUS dostarczałby te informacje na podstawie rzeczywistego profilu użytkownika.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* User Inputs */}
-      <Card className="max-w-5xl w-full mb-6">
+      <Card className="max-w-5xl w-full mb-6 mt-6">
         <CardHeader><CardTitle>Dane użytkownika</CardTitle></CardHeader>
         <CardContent className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
