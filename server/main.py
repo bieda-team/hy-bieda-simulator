@@ -39,7 +39,6 @@ def forecast(request: Request,
 
         results.append({
             "year": year,
-            "income": round(current_income, 2),
             "expenses": round(current_expenses, 2),
             "savings": round(net_savings, 2),
             "total_savings": round(total_savings, 2)
@@ -48,7 +47,6 @@ def forecast(request: Request,
     return templates.TemplateResponse("index.html", {
         "request": request,
         "results": results,
-        "income": income,
         "expenses": expenses,
         "years": years
     })
