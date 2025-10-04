@@ -1,5 +1,66 @@
-.venv
-
+# === Python ===
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.dylib
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+
+# Environment variables
+.env
+.env.*
+!env.example
+
+# Compiled Cython files
+*.pyd
+*.c
+*.cpp
+
+# === FastAPI / Uvicorn ===
+# Ignore auto reload cache files
+*.pid
+*.sock
+
+# === Jupyter / Notebooks ===
+.ipynb_checkpoints/
+
+# === OS Specific ===
+.DS_Store
+Thumbs.db
+
+# === IDEs / Editors ===
+.vscode/
+.idea/
+*.swp
+
+# === Tests / Coverage ===
+.pytest_cache/
+.coverage
+htmlcov/
+
+# === Build / Distribution ===
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# === Misc ===
+# Temporary files
+*.tmp
+*.bak
+*.old
+
+__pycache__/
+*.py[cod]

@@ -1,52 +1,21 @@
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from get_data import load_inflation, load_demographics
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from api.predict import router as predict_router
 
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+app = FastAPI(
+    title="Hy-Bieda Simulator API",
+    description="Economic prediction API for Polish citizens",
+    version="0.1.0"
+)
 
-# Завантаження даних
-inflation_data = load_inflation("Poland")
-demographics = load_demographics("2025")
+# CORS — allows frontend (localhost:3000) to talk to backend (localhost:8000)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # later replace "*" with your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.post("/forecast", response_class=HTMLResponse)
-def forecast(request: Request,
-             income: float = Form(...),
-             expenses: float = Form(...),
-             years: int = Form(...)):
-
-    results = []
-    total_savings = 0
-    current_income = income
-    current_expenses = expenses
-    current_year = 2025
-
-    for i in range(years):
-        year = current_year + i
-        inflation_rate = inflation_data.get(year, list(inflation_data.values())[-1])
-        demo_factor = demographics.get(year, list(demographics.values())[-1]) / 100
-
-        # Оновлюємо витрати та доходи
-        current_expenses = 1 + inflation_rate / 100
-        current_income = current_income * (1 + demo_factor)
-        net_savings = current_income - current_expenses
-        total_savings += net_savings
-
-        results.append({
-            "year": year,
-            "expenses": round(current_expenses, 2),
-            "savings": round(net_savings, 2),
-            "total_savings": round(total_savings, 2)
-        })
-
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "results": results,
-        "expenses": expenses,
-        "years": years
-    })
+# Include /api routes
+app.include_router(predict_router, prefix="/api")
