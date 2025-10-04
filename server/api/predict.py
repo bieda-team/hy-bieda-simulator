@@ -1,9 +1,12 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 import random
+from calculator.calculator import InflationCalculator
 from datetime import datetime
 
 router = APIRouter()
+
+inflation_calc = InflationCalculator()
 
 class PredictionRequest(BaseModel):
     last_zus_year: int = 2024
@@ -30,6 +33,8 @@ def predict_retirement(data: PredictionRequest):
     years_worked = current_year - data.start_work_year
     retirement_year = data.birth_year + data.retirement_age_years
     years_until_retirement = max(retirement_year - current_year, 0)
+    
+    infaltion_in_the_future = inflation_calc.predict_infaltion(years_until_retirement)
 
     # --- Capital growth simulation ---
     valorization_rate = 0.045
