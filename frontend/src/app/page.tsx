@@ -21,6 +21,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import DesiredPensionInput from '@/components/DesiredPensionInput'
+
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(false)
@@ -246,6 +248,9 @@ export default function LandingPage() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      <DesiredPensionInput />
+
 
       {/* Investing Options */}
       <Card className="mt-12 w-full max-w-5xl shadow-md border border-zus-gray">
