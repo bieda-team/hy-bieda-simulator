@@ -36,7 +36,6 @@ class InflationCalculator:
             
             yield next_inflation
 
-    def calculate_devaulation()
     
 if __name__ == "__main__":
     calc = InflationCalculator(30)
