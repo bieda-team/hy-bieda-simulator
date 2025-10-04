@@ -22,7 +22,7 @@ class InflationCalculator:
             self.historic_inflation = np.array(infaltions)
             
 
-    def predict_infaltion(self, until_retirement):
+    def predict_inflation(self, until_retirement):
         current_data = self.historic_inflation.copy()
 
         for _ in range(until_retirement):
@@ -36,8 +36,18 @@ class InflationCalculator:
             
             yield next_inflation
 
-    def calculate_devaulation()
-    
+    def calculate_devaulation(self, until_retirement):
+        inflations = list(self.predict_inflation(until_retirement))
+        list_of_devaulation = []
+        devaulation = 1
+
+        for i in inflations:
+            next_devaulation = 1 + i/100
+            list_of_devaulation.append(next_devaulation - 1)
+        return list_of_devaulation
+
+
 if __name__ == "__main__":
-    calc = InflationCalculator(30)
-    print(calc.predict_infaltion())
+    calc = InflationCalculator()
+    print(", ".join(str(i) for i in calc.predict_inflation(30)))
+    print(calc.calculate_devaulation(30))
