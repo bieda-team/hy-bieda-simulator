@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Прогноз фінансів</title>
+</head>
+<body>
+    <h1>Прогноз фінансів на наступні роки</h1>
+    <form method="post" action="/forecast">
+        <label>Поточний дохід:</label>
+        <input type="number" name="income" value="{{ income or 10000 }}" required><br>
+
+        <label>Поточні витрати:</label>
+        <input type="number" name="expenses" value="{{ expenses or 8000 }}" required><br>
+
+        <label>Прогноз на скільки років:</label>
+        <input type="number" name="years" value="{{ years or 5 }}" required><br>
+
+        <button type="submit">Розрахувати</button>
+    </form>
+
+    {% if results %}
+        <h2>Результати прогнозу</h2>
+        <table border="1">
+            <tr>
+                <th>Рік</th>
+                <th>Дохід</th>
+                <th>Витрати</th>
+                <th>Накопичення</th>
+                <th>Загальні накопичення</th>
+            </tr>
+            {% for row in results %}
+            <tr>
+                <td>{{ row.year }}</td>
+                <td>{{ row.income }}</td>
+                <td>{{ row.expenses }}</td>
+                <td>{{ row.savings }}</td>
+                <td>{{ row.total_savings }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
