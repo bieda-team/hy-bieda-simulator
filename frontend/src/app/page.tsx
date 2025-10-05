@@ -373,7 +373,6 @@ export default function LandingPage() {
         onChange={(val) => handleChange("expected_pension", val)}
       />
 
-
       {/* Investing Options */}
       <Card className="mt-12 w-full max-w-5xl shadow-md border border-zus-gray">
         <CardHeader>
@@ -402,32 +401,30 @@ export default function LandingPage() {
         </CardContent>
       </Card>
 
-<Button
-  className="bg-zus-blue text-white hover:bg-zus-dark-blue mt-6"
-  onClick={() => {
-    if (!prediction) {
-      alert("Najpierw oblicz prognozę, aby pobrać raport!");
-      return;
-    }
-    downloadPDFReport({
-      date: new Date().toLocaleDateString("pl-PL"),
-      time: new Date().toLocaleTimeString("pl-PL"),
-      expectedPension: formData.expected_pension ?? 5000,
-      age: new Date().getFullYear() - selectedProfile.birth_year,
-      gender: selectedProfile.sex,
-      income: formData.current_income,
-      includesSickLeave: false,
-      savings: formData.savings,
-      actualPension: prediction?.estimated_monthly_pension ?? 0,
-      adjustedPension: prediction?.replacement_rate_percent ?? 0,
-      postalCode: "00-001",
-    });
-  }}
->
-  📄 Pobierz raport PDF
-</Button>
-
-
+      <Button
+        className="bg-zus-blue text-white hover:bg-zus-dark-blue mt-6"
+        onClick={() => {
+          if (!prediction) {
+            alert("Najpierw oblicz prognozę, aby pobrać raport!");
+            return;
+          }
+          downloadPDFReport({
+            date: new Date().toLocaleDateString("pl-PL"),
+            time: new Date().toLocaleTimeString("pl-PL"),
+            expectedPension: formData.expected_pension ?? 5000,
+            age: new Date().getFullYear() - selectedProfile.birth_year,
+            gender: selectedProfile.sex,
+            income: formData.current_income,
+            includesSickLeave: false,
+            savings: formData.savings,
+            actualPension: prediction?.estimated_monthly_pension ?? 0,
+            adjustedPension: prediction?.replacement_rate_percent ?? 0,
+            postalCode: "00-001",
+          });
+        }}
+      >
+        📄 Pobierz raport PDF
+      </Button>
 
       <pre className="mt-8 text-sm bg-zus-gray rounded-lg p-4 w-full max-w-4xl overflow-auto text-zus-dark-blue">
         {prediction
